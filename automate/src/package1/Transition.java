@@ -39,6 +39,37 @@ public class Transition {
 	public String toString() {
 		return depart + " " + mot + " " + arrivee;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + arrivee;
+		result = prime * result + depart;
+		result = prime * result + ((mot == null) ? 0 : mot.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Transition other = (Transition) obj;
+		if (arrivee != other.arrivee)
+			return false;
+		if (depart != other.depart)
+			return false;
+		if (mot == null) {
+			if (other.mot != null)
+				return false;
+		} else if (!mot.equals(other.mot))
+			return false;
+		return true;
+	}
 	
 	
 }

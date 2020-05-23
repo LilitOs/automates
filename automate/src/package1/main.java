@@ -51,7 +51,9 @@ public class main {
     				}
     			}
     			else {
-    				auto.addTransition(new Transition(Integer.parseInt(ligne[0]), Integer.parseInt(ligne[2]), ligne[1] ));
+    				Transition tr = new Transition(Integer.parseInt(ligne[0]), Integer.parseInt(ligne[2]), ligne[1] );
+    				if(!auto.getTransitions().contains(tr))
+    				auto.addTransition(tr);
     			}
     		}	
     		in.close();
@@ -66,8 +68,18 @@ public class main {
 		ArrayList<String> words = auto.getMots();
 		ArrayList<String> ligne1 = new ArrayList<String>();
 		ArrayList<ArrayList<String>> matrice = new ArrayList<ArrayList<String>>();
-
-		int nbStates = auto.nbStates();
+		
+		// Si AD le nombre d'états n'est pas calculé pareil
+		int nbStates;
+		if(auto.isAutoDeter()) {
+			nbStates = auto.getEtatsDetermin().size();
+		}
+		else
+		{
+			nbStates = auto.nbStates();
+		}
+		
+			
 		int nbWords = auto.nbWords();
 		int maxPerLine =2;
 		
@@ -79,7 +91,7 @@ public class main {
 		}
 		matrice.add(ligne1);
 	
-		for(int i=0; i<auto.nbStates(); i++) {
+		for(int i=0; i<nbStates; i++) {
 			ArrayList<String> ligne = new ArrayList<String>();
 			
 			if(entries.contains(states.get(i)) && !exits.contains(states.get(i))){
@@ -96,7 +108,23 @@ public class main {
 			else {
 				ligne.add(" ");
 			}
-			ligne.add(i+1+" ");
+			// si auto = AD (donc les états ont plusieurs valeurs)
+			if(auto.isAutoDeter()) {
+				String etat ="";
+				for(Integer e : auto.getEtatsDetermin().get(i)) {
+					if(etat.equals("")) {
+						etat += e;
+					}
+					else {
+						etat += "," + e;
+					}
+				}
+				ligne.add(etat);
+			}
+			else {
+				ligne.add(i+1+" ");
+			}
+			
 			
 			for(int j=0; j<auto.nbWords();j++) {
 				String temp = new String();
@@ -135,6 +163,146 @@ public class main {
 		System.out.println(line);
 	}
 	
+	public static ArrayList<Transition> allTransiOfOneStateDepart(Automate auto, Integer state){
+		ArrayList<Transition> listOfTransi = new ArrayList<Transition>();
+		for(Transition transi : auto.getTransitions()){
+			if(transi.getDepart()==state) {
+				listOfTransi.add(transi);
+			}
+		}
+		
+		return listOfTransi;
+	}
+	
+	public static Automate synchronisation(Automate auto) {
+		ArrayList<Transition> transiMotsVides = new ArrayList<Transition>();
+		//Recup les transi avc mot vides
+		for(Transition transi : auto.getTransitions()) {
+			if(transi.getMot().equals(Automate.motVide)) {
+				transiMotsVides.add(transi);
+				System.out.println(transi);
+			}
+		}
+		
+		// Ajouter les transis équivalents
+	
+		for(Transition trMotVide : transiMotsVides){
+			//Retirer les transis mot vides	( important de le mettre dans une boucle séparé de la suite, évite bcp de problèmes)
+			auto.removeTransition(trMotVide);
+		}
+		
+		// Premier passage
+		for(Transition trMotVide : transiMotsVides){
+			ArrayList<Transition> transiInfo = allTransiOfOneStateDepart(auto, trMotVide.getArrivee());
+			for(Transition trInf : transiInfo) {
+				Transition trToAdd = new Transition(trMotVide.getDepart(), trInf.getArrivee(),trInf.getMot());
+				if(!auto.getTransitions().contains(trToAdd))
+					auto.addTransition(trToAdd);
+			}
+		}
+		
+		// 2eme passage, on recommence pour bien ajouté les transitions qui ont pu être oublié à cause de l'ordre de leurs dispositions dans le fichier (c'est compliqué, meilleur méthode que j'ai trouvé)
+	
+		for(Transition trMotVide : transiMotsVides){
+			ArrayList<Transition> transiInfo = allTransiOfOneStateDepart(auto, trMotVide.getArrivee());
+			for(Transition trInf : transiInfo) {
+				Transition trToAdd = new Transition(trMotVide.getDepart(), trInf.getArrivee(),trInf.getMot());
+				if(!auto.getTransitions().contains(trToAdd))
+					auto.addTransition(trToAdd);	
+			}
+		}
+		return auto;
+	}
+	
+	public static Automate determiniser(Automate auto) {
+		if(auto.asynchrone()) {
+			auto = synchronisation(auto);
+		}
+		
+		Automate AD = new Automate();
+		// Creation de l'etat 1
+		ArrayList<Integer> entries = auto.getEntries();
+		ArrayList<Integer> exits = auto.getExits();
+		AD.addEntry(1);
+		ArrayList<ArrayList<Integer>> states = new ArrayList<ArrayList<Integer>>();
+		ArrayList<ArrayList<Integer>> memoStates = new ArrayList<ArrayList<Integer>>();
+		ArrayList<String> mots = auto.getMots();
+		ArrayList<Integer> state0 = new ArrayList<Integer>();
+		
+		for(Integer e : entries) {
+			state0.add(e);
+		}
+		states.add(state0);
+		memoStates.add(state0);
+		 // etape 1
+		for(String mot : mots) {
+			ArrayList<Integer> newState = new ArrayList<Integer>();
+			for(Integer e : entries) {
+				for(Transition tr : allTransiOfOneStateDepart(auto, e)) {
+					if(tr.getMot().equals(mot)){
+						if(!newState.contains(tr.getArrivee()))
+							newState.add(tr.getArrivee());
+					AD.addTransition( new Transition(1, tr.getArrivee(), mot));
+					}
+					
+				}
+			}
+			if(!memoStates.contains(newState) && !newState.isEmpty()) { // a voir si ça marche avc des listes de listes
+				states.add(newState);
+				memoStates.add(newState);
+			}
+		}
+		states.remove(state0);
+		
+		//test
+		for(ArrayList<Integer> state : states) {
+			for(Integer e : state) {
+				System.out.print(e);
+			}
+			System.out.println();
+		}
+		
+		// le reste
+		int i = 0;
+		int k = 0;
+		while(!states.isEmpty()) {
+			for(String mot : mots) {
+				ArrayList<Integer> newState = new ArrayList<Integer>();
+				for(Integer e : states.get(i)) {
+					for(Transition tr : allTransiOfOneStateDepart(auto, e)) {
+						if(tr.getMot().equals(mot)){
+							if(!newState.contains(tr.getArrivee()))
+								newState.add(tr.getArrivee());
+						AD.addTransition( new Transition(k+2, tr.getArrivee(), mot));
+						}
+						
+					}
+				} 
+				if(!memoStates.contains(newState) && !newState.isEmpty()) { // a voir si ça marche avc des listes de listes
+					states.add(newState);
+					memoStates.add(newState);
+				}
+				
+			}
+			states.remove(states.get(i));
+			k++;
+		}
+		
+		// on place les sorties
+		for(int ind = 0; ind<memoStates.size(); ind++) {
+			for(Integer e : exits) {
+				if(memoStates.get(ind).contains(e)) {
+					AD.addExit(ind+1);
+				}
+			}
+		}
+		
+		AD.setAutoDeter(true);
+		AD.setEtatsDetermin(memoStates);
+		
+		return AD;
+	}
+	
 	public static void main(String[] args) {
 			try {
 				Automate auto = lireFichier();
@@ -152,8 +320,11 @@ public class main {
 					System.out.println("Automate synchrone\n");
 
 				afficher(auto);				
-
-
+				afficher(synchronisation(auto));
+				Automate AD = determiniser(auto);
+				afficher(AD);
+				
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

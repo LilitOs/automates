@@ -9,11 +9,15 @@ public class Automate {
 	private ArrayList<Integer> exits;
 	private ArrayList<Transition> transitions;
 	
+	// une fois que l'automate est déterminisé
+	private ArrayList<ArrayList<Integer>> etatsDetermin; 
+	private boolean AutoDeter;
+	
 	public Automate() {
 		entries = new ArrayList<Integer>();
 		exits = new ArrayList<Integer>();
 		transitions = new ArrayList<Transition>();
-
+		AutoDeter = false;
 	}
 	
 	public void addEntry(int entry) {
@@ -24,10 +28,30 @@ public class Automate {
 		exits.add(exit);
 	}
 	
-	public void addTransition(Transition t) {
-		transitions.add(t);
+	public boolean isAutoDeter() {
+		return AutoDeter;
 	}
 
+	public ArrayList<ArrayList<Integer>> getEtatsDetermin() {
+		return etatsDetermin;
+	}
+
+	public void setEtatsDetermin(ArrayList<ArrayList<Integer>> etatsDetermin) {
+		this.etatsDetermin = etatsDetermin;
+	}
+
+	public void setAutoDeter(boolean autoDeter) {
+		AutoDeter = autoDeter;
+	}
+
+	public void addTransition(Transition t) {
+		if(!transitions.contains(t))
+			transitions.add(t);
+	}
+	
+	public void removeTransition(Transition t) {
+		transitions.remove(t);
+	}
 	
 	
 	public ArrayList<Integer> getEntries() {
@@ -52,6 +76,7 @@ public class Automate {
 		}
 		return words;
 	}
+
 	
 	public ArrayList<Integer> getStates() {
 		ArrayList<Integer> states = new ArrayList<Integer>();
