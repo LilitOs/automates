@@ -149,6 +149,19 @@ public class main {
 			}
 			matrice.add(ligne);
 		}
+		// Si un état poubelle existe
+		/*
+		if(auto.isEtatPoubelle()) {
+			ArrayList<String> lignePoubelle = new ArrayList<String>();
+			String temp ="";
+			for(String mot : auto.getMots()) {
+				temp = Integer.toString(-1);
+				lignePoubelle.add(temp);
+			}
+			matrice.add(lignePoubelle);
+		}
+		*/
+			
 		
 		//Affichage
 		String format = "|%" + Integer.toString((maxPerLine*2)-1) +"." + Integer.toString((maxPerLine*2)-1) + "s";
@@ -176,6 +189,8 @@ public class main {
 	
 	public static Automate synchronisation(Automate auto) {
 		ArrayList<Transition> transiMotsVides = new ArrayList<Transition>();
+		ArrayList<Integer> entries = auto.getEntries();
+		ArrayList<Integer> exits = auto.getExits();
 		//Recup les transi avc mot vides
 		for(Transition transi : auto.getTransitions()) {
 			if(transi.getMot().equals(Automate.motVide)) {
@@ -194,6 +209,10 @@ public class main {
 		// Premier passage
 		for(Transition trMotVide : transiMotsVides){
 			ArrayList<Transition> transiInfo = allTransiOfOneStateDepart(auto, trMotVide.getArrivee());
+			if(entries.contains(trMotVide.getArrivee()))
+				auto.addEntry(trMotVide.getDepart());
+			if(exits.contains(trMotVide.getArrivee()))
+				auto.addExit(trMotVide.getDepart());
 			for(Transition trInf : transiInfo) {
 				Transition trToAdd = new Transition(trMotVide.getDepart(), trInf.getArrivee(),trInf.getMot());
 				if(!auto.getTransitions().contains(trToAdd))
@@ -303,6 +322,83 @@ public class main {
 		return AD;
 	}
 	
+	public static Automate completer(Automate auto) {
+		ArrayList<String> mots = auto.getMots();
+		ArrayList<Transition> transitions = auto.getTransitions();	
+		int etatPoub = auto.nbStates() +1; 
+		
+		if(auto.isAutoDeter()) {
+			
+			ArrayList<ArrayList<Integer>> listOfStates = auto.getEtatsDetermin(); 
+			Integer size = listOfStates.size();
+			
+			boolean poubCreer = false;
+			boolean flag;
+			
+			// Ajout des transitions vers l'état poubelle si besoin
+			for(String mot : mots) {
+				for(int i=0; i<size; i++) {
+					flag = false;
+					for(Transition tr : transitions) {
+						if(tr.getDepart()== i+1 && tr.getMot().contentEquals(mot)) {
+							flag = true;
+						}
+					}
+					
+					if(!flag) {
+						auto.addTransition(new Transition(i+1, etatPoub, mot));
+						poubCreer = true;
+					}
+				}
+			}
+			
+			// Creation des transitions de l'états poubelles reconnaissant tous les mots vers elle même si poubelle créer
+			if(poubCreer) {
+				ArrayList<Integer> poubelle = new ArrayList<Integer>();
+				poubelle.add(etatPoub);
+				for(String m : mots) {
+					auto.addTransition(new Transition(etatPoub, etatPoub, m));
+				}
+				auto.addEtatDetermin(poubelle);
+			}
+		}
+		else {
+			
+			ArrayList<Integer> states = auto.getStates();
+
+			boolean poubCreer = false;
+			boolean flag;
+			
+			// Ajout des transitions vers l'état poubelle si besoin
+			for(String mot : mots) {
+				for(Integer state : states) {
+					flag = false;
+					for(Transition tr : transitions) {
+						if(tr.getDepart()== state && tr.getMot().contentEquals(mot)) {
+							flag = true;
+						}
+					}
+					
+					if(!flag) {
+						auto.addTransition(new Transition(state, etatPoub, mot));
+						poubCreer = true;
+					}
+				}
+			}
+			
+			// Creation des transitions de l'états poubelles reconnaissant tous les mots vers elle même si poubelle créer
+			if(poubCreer) {
+				for(String m : mots) {
+					auto.addTransition(new Transition(etatPoub, etatPoub, m));
+				}
+			}
+		}
+		auto.setEtatPoubelle(true);
+		return auto;
+		
+	}
+	
+	
 	public static void main(String[] args) {
 			try {
 				Automate auto = lireFichier();
@@ -323,7 +419,7 @@ public class main {
 				afficher(synchronisation(auto));
 				Automate AD = determiniser(auto);
 				afficher(AD);
-				
+				afficher(completer(AD));
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

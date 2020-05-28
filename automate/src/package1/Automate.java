@@ -13,11 +13,15 @@ public class Automate {
 	private ArrayList<ArrayList<Integer>> etatsDetermin; 
 	private boolean AutoDeter;
 	
+	// si completion
+	private boolean etatPoubelle;
+	
 	public Automate() {
 		entries = new ArrayList<Integer>();
 		exits = new ArrayList<Integer>();
 		transitions = new ArrayList<Transition>();
 		AutoDeter = false;
+		etatPoubelle = false;
 	}
 	
 	public void addEntry(int entry) {
@@ -39,9 +43,21 @@ public class Automate {
 	public void setEtatsDetermin(ArrayList<ArrayList<Integer>> etatsDetermin) {
 		this.etatsDetermin = etatsDetermin;
 	}
+	
+	public void addEtatDetermin(ArrayList<Integer> etat) {
+		etatsDetermin.add(etat);
+	}
 
 	public void setAutoDeter(boolean autoDeter) {
 		AutoDeter = autoDeter;
+	}
+	
+	public boolean isEtatPoubelle() {
+		return etatPoubelle;
+	}
+
+	public void setEtatPoubelle(boolean etatPoubelle) {
+		this.etatPoubelle = etatPoubelle;
 	}
 
 	public void addTransition(Transition t) {
@@ -112,6 +128,7 @@ public class Automate {
 				states.add(transi.getArrivee());
 			}
 		}
+	
 		return count;
 	}
 	
