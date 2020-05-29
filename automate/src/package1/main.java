@@ -738,7 +738,29 @@ public class main {
         }while (true);
 	}
 	
-	
+	public static boolean isStandard(Automate auto) {
+		ArrayList<Integer> entries = auto.getEntries();
+		ArrayList<Integer> exits = auto.getExits();
+		ArrayList<String> mots = auto.getMots();
+		ArrayList<Integer> states = auto.getStates();
+		ArrayList<Transition> transitions = auto.getTransitions();
+		boolean isStandard= true;
+		
+		if(entries.size()>1) {
+			isStandard = false;
+			return isStandard;
+		}
+		else {
+			int entry = entries.get(0);
+			for(Transition tr : transitions) {
+				if(tr.getArrivee() == entry) {
+					isStandard = false;
+				}
+			}
+		}
+		
+		return isStandard;
+	}
 	
 	public static Automate standardiser(Automate auto) {
 		if(!auto.isAutoDeter()) {
@@ -878,7 +900,8 @@ public class main {
 				
 				if(rep.equals("y")) {
 					System.out.println("Minimisation de l'AFDC :");
-					Automate AFDCM = new Automate(minimiser(AFDC));
+					Automate temp = new Automate(determiniser(auto));
+					Automate AFDCM = new Automate(minimiser(temp));
 					System.out.println("Automate déterminisé complet minimisé AFDCM :");
 					afficher(AFDCM);
 					System.out.println("Reconnaissance de mot sur l'AFDCM :");
@@ -893,9 +916,17 @@ public class main {
 				System.out.println("Reconnaissance de mot sur l'AFDC complémentaire :");
 				lancementReconnaissanceMot(AFDCcomp);
 				
-				System.out.println("Automate complémentaire de l'AFDC stanrdadisé :");
-				Automate AFDCcompStd = new Automate(standardiser(AFDCcomp));
-				afficher(AFDCcompStd);
+				if(isStandard(AFDCcomp)) {
+					System.out.println("L'automate complémentaire de l'AFDC est déjà standardisé :");
+					afficher(AFDCcomp);
+				}
+				else {
+					System.out.println("L'automate complémentaire de l'AFDC n'est pas standard :");
+					System.out.println("Automate complémentaire de l'AFDC standardisé :");
+					Automate AFDCcompStd = new Automate(standardiser(AFDCcomp));
+					afficher(AFDCcompStd);
+				}
+				
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
