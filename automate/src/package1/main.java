@@ -15,7 +15,7 @@ import java.util.Scanner;
 public class main {
 
 	public static String chooseAuto(int choice) {
-		String automate = new File("src/files/L3NEW-Mpl-5-"+choice+".txt").getAbsolutePath();
+		String automate = new File("src/files/L3NEW-MpI-5-"+choice+".txt").getAbsolutePath();
     	return automate;
 	}
 	
@@ -123,7 +123,7 @@ public class main {
 				ligne.add(etat);
 			}
 			else {
-				ligne.add(i+1+" ");
+				ligne.add(i+" ");
 			}
 			
 			
@@ -132,7 +132,7 @@ public class main {
 				boolean first = false;
 				int max =0;
 				for(Transition tr : transi) {
-					if(tr.getDepart() == i+1 && tr.getMot().contentEquals(words.get(j))) {
+					if(tr.getDepart() == i && tr.getMot().contentEquals(words.get(j))) {
 						if(!first) {
 							temp = Integer.toString(tr.getArrivee());
 							first = true;
@@ -230,7 +230,7 @@ public class main {
 		// Creation de l'etat 1
 		ArrayList<Integer> entries = auto.getEntries();
 		ArrayList<Integer> exits = auto.getExits();
-		AD.addEntry(1);
+		AD.addEntry(0);
 		ArrayList<ArrayList<Integer>> states = new ArrayList<ArrayList<Integer>>();
 		ArrayList<ArrayList<Integer>> memoStates = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> mots = auto.getMots();
@@ -249,7 +249,7 @@ public class main {
 					if(tr.getMot().equals(mot)){
 						if(!newState.contains(tr.getArrivee()))
 							newState.add(tr.getArrivee());
-					AD.addTransition( new Transition(1, tr.getArrivee(), mot));
+					AD.addTransition( new Transition(0, tr.getArrivee(), mot));
 					}
 					
 				}
@@ -280,7 +280,7 @@ public class main {
 						if(tr.getMot().equals(mot)){
 							if(!newState.contains(tr.getArrivee()))
 								newState.add(tr.getArrivee());
-						AD.addTransition( new Transition(k+2, tr.getArrivee(), mot));
+						AD.addTransition( new Transition(k+1, tr.getArrivee(), mot));
 						}
 						
 					}
@@ -299,7 +299,7 @@ public class main {
 		for(int ind = 0; ind<memoStates.size(); ind++) {
 			for(Integer e : exits) {
 				if(memoStates.get(ind).contains(e)) {
-					AD.addExit(ind+1);
+					AD.addExit(ind);
 				}
 			}
 		}
@@ -313,7 +313,7 @@ public class main {
 	public static Automate completer(Automate auto) {
 		ArrayList<String> mots = auto.getMots();
 		ArrayList<Transition> transitions = auto.getTransitions();	
-		int etatPoub = auto.nbStates() +1; 
+		int etatPoub = auto.nbStates() ; 
 		
 		if(auto.isAutoDeter()) {
 			
@@ -328,13 +328,13 @@ public class main {
 				for(int i=0; i<size; i++) {
 					flag = false;
 					for(Transition tr : transitions) {
-						if(tr.getDepart()== i+1 && tr.getMot().contentEquals(mot)) {
+						if(tr.getDepart()== i && tr.getMot().contentEquals(mot)) {
 							flag = true;
 						}
 					}
 					
 					if(!flag) {
-						auto.addTransition(new Transition(i+1, etatPoub, mot));
+						auto.addTransition(new Transition(i, etatPoub, mot));
 						poubCreer = true;
 					}
 				}
@@ -460,23 +460,23 @@ public class main {
 			ArrayList<Integer> etatGroup1 = new ArrayList<Integer>();
 			ArrayList<Integer> etatGroup2 = new ArrayList<Integer>();
 			for(int i=0; i<size; i++) {
-				if(exits.contains(i+1)) {
-					etatGroup1.add(i+1);
+				if(exits.contains(i)) {
+					etatGroup1.add(i);
 				}
 				else {
-					etatGroup2.add(i+1);
+					etatGroup2.add(i);
 				}
 			}
 
 			for(String mot :mots) {
 				for(int i=0; i<size; i++) {
-					ArrayList<Integer> arriv = stateArrivOfAnTransition(auto, i+1, mot);
+					ArrayList<Integer> arriv = stateArrivOfAnTransition(auto, i, mot);
 					boolean find = false;
 					int j =0;
 					while(!find) {
 						while(j<etatGroup1.size() && !find) {
-							if( arriv.equals(states.get(etatGroup1.get(j)-1))) { 
-								etape.addTransition(new Transition(i+1, 1, mot));
+							if( arriv.equals(states.get(etatGroup1.get(j)))) { 
+								etape.addTransition(new Transition(i, 1, mot));
 								find=true;
 							}
 							
@@ -484,8 +484,8 @@ public class main {
 						}
 						j=0;
 						while(j<etatGroup2.size() && !find) {
-							if( arriv.equals(states.get(etatGroup2.get(j)-1))) { 
-								etape.addTransition(new Transition(i+1, 2, mot));
+							if( arriv.equals(states.get(etatGroup2.get(j)))) { 
+								etape.addTransition(new Transition(i, 2, mot));
 								find=true;
 							}
 							j++;
@@ -542,10 +542,10 @@ public class main {
 						for(int group=0; group<listOfGroups.size(); group++) { // chaque groupe
 							for(Integer st :  listOfGroups.get(group)) // chaque etat de chaque groupe
 								for(Transition tr : transitions) {
-									if(tr.getDepart()== i+1 && tr.getMot().equals(mot)) {
-										ArrayList<Integer> arriv = stateArrivOfAnTransition(auto, i+1, mot);
-										if(arriv.equals(states.get(st-1))) {
-											newEtape.addTransition(new Transition(i+1, group+1, mot));
+									if(tr.getDepart()== i && tr.getMot().equals(mot)) {
+										ArrayList<Integer> arriv = stateArrivOfAnTransition(auto, i, mot);
+										if(arriv.equals(states.get(st))) {
+											newEtape.addTransition(new Transition(i, group, mot));
 										}
 									}
 							}
@@ -565,23 +565,20 @@ public class main {
 				for(String mot : mots) {
 					for(Transition tr : transiEtape) {
 						if(tr.getMot().equals(mot) && tr.getDepart() == listOfGroups.get(group).get(0) ){
-							AM.addTransition(new Transition(group+1, tr.getArrivee(), mot));
+							AM.addTransition(new Transition(group, tr.getArrivee(), mot));
 						}
 					}
 				}
 			}
 			
-			System.out.println(entries);
-			System.out.println(exits);
-			
 			// ajout des entrees et sorties
 			for(int group=0; group<listOfGroups.size(); group++) {
 				for(Integer st : listOfGroups.get(group)) {
 					if(entries.contains(st))
-						AM.addEntry(group+1);
+						AM.addEntry(group);
 					
 					if(exits.contains(st)) 
-						AM.addExit(group+1);
+						AM.addExit(group);
 				}
 			}
 			
@@ -623,10 +620,10 @@ public class main {
 				else {
 					for(int i=0; i<size; i++) {
 						if(states.get(i).equals(arriv)) {
-							currentState=i+1;
+							currentState=i;
 						}
 					}
-					if(exits.contains(currentState) && c==argMot.length()) {
+					if(exits.contains(currentState) && c==argMot.length()-1) {
 						reconnu = true;
 					
 					}else {
@@ -711,34 +708,89 @@ public class main {
 	}
 	
 	public static Automate standardiser(Automate auto) {
+		
 		return null;
+	}
+
+	public static Automate complementaire(Automate auto) {
+		if(auto.isAutoDeter()) {
+			ArrayList<Integer> exits = auto.getExits();
+			ArrayList<ArrayList<Integer>> states = auto.getEtatsDetermin();
+			
+			System.out.println(exits);
+			
+			for(int i=0; i<states.size(); i++) {
+				if(exits.contains(i)) {
+					Integer j = i; // Obligé de passé un objet en param de remove, sinon c un remove par indice 
+					exits.remove(j);
+				}
+				else if(!exits.contains(i)){
+					exits.add(i);
+				}
+			}
+		}
+		else {
+			ArrayList<Integer> exits = auto.getExits();
+			ArrayList<Integer> states = auto.getStates();
+			
+			for(Integer state : states) {
+				if(exits.contains(state)) {
+					Integer j = state; 
+					exits.remove(j);
+				}
+				else {
+					exits.add(state);
+				}
+			}
+		}
+		
+		
+		return auto;
+		
 	}
 	
 	public static void main(String[] args) {
 			try {
 				Automate auto = lireFichier();
-				System.out.println(auto);
+				/*System.out.println(auto);
 				System.out.println(auto.nbStates());
 				System.out.println(auto.nbWords());
 				System.out.println(auto.getStates());
 				System.out.println(auto.getMots());
 				System.out.println("entries : " + auto.getEntries());
-				System.out.println("exits : " + auto.getExits());
+				System.out.println("exits : " + auto.getExits());*/
+				
 				auto.reportAsync();
 				if(auto.asynchrone())
 					System.out.println("Automate asynchrone\n");
 				else
 					System.out.println("Automate synchrone\n");
 
-				afficher(auto);				
+				afficher(auto);		
+				System.out.println("Passage en automate synchrone :");
 				afficher(synchronisation(auto));
-				Automate AD = determiniser(auto);
-				afficher(AD);
-				Automate ADC = completer(AD);
-				afficher(ADC);
-				Automate ADCM = minimiser(ADC);
-				afficher(ADCM);
-				lancementReconnaissanceMot(ADCM);
+				
+				System.out.println("Automate déterminisé complet AFDC :");
+				Automate AFD = new Automate(determiniser(auto));
+				Automate AFDC = new Automate(completer(AFD));
+				afficher(AFDC);
+				
+				System.out.println("Reconnaissance de mot sur l'AFDC :");
+				lancementReconnaissanceMot(AFDC);
+				
+				System.out.println("Automate complémentaire de l'AFDC :");
+				Automate AFDCcomp = new Automate(complementaire(AFDC));
+				afficher(AFDCcomp);
+				
+				System.out.println("Reconnaissance de mot sur l'AFDC complémentaire :");
+				lancementReconnaissanceMot(AFDCcomp);
+				
+				System.out.println("Minimisation de l'AFDC :");
+				Automate AFDCM = new Automate(minimiser(AFDC));
+				System.out.println("Automate déterminisé complet minimisé AFDCM :");
+				afficher(AFDCM);
+				System.out.println("Reconnaissance de mot sur l'AFDCM :");
+				lancementReconnaissanceMot(AFDCM);
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

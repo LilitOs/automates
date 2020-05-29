@@ -39,11 +39,13 @@ public class Automate {
 	}
 	
 	public void addEntry(int entry) {
-		entries.add(entry);
+		if(!entries.contains(entry))
+			entries.add(entry);
 	}
 	
 	public void addExit(int exit) {
-		exits.add(exit);
+		if(!exits.contains(exit))
+			exits.add(exit);
 	}
 	
 	public boolean isAutoDeter() {
