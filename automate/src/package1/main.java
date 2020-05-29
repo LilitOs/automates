@@ -221,6 +221,31 @@ public class main {
 		return auto;
 	}
 	
+	public static boolean isDetermined(Automate auto) {
+		ArrayList<Integer> entries = auto.getEntries();
+		ArrayList<Integer> exits = auto.getExits();
+		ArrayList<String> mots = auto.getMots();
+		ArrayList<Integer> states = auto.getStates();
+		ArrayList<Transition> transitions = auto.getTransitions();
+		boolean isDetermined = true;
+		
+		for(Integer st : states) {
+			for(String mot : mots) {
+				int count =0;
+				for (Transition tr : transitions) {
+					if(tr.getDepart()== st && tr.getMot().contentEquals(mot)) {
+						count++;
+					}
+				}
+				if(count>1)
+					isDetermined=false;
+			}	
+		}
+		if(entries.size()>1)
+			isDetermined = false;
+		return isDetermined;
+	}
+	
 	public static Automate determiniser(Automate auto) {
 		if(auto.asynchrone()) {
 			auto = synchronisation(auto);
@@ -584,8 +609,8 @@ public class main {
 			
 			return AM;
 		}
-		return null;
-		
+		System.out.println("La minimisation est implenté uniquement pour les automates qui subissent la déterminisation pendant la durée du programme.");
+		return auto;
 	} 
 	
 	public static void reconnaissanceMot(Automate auto, String argMot) {
@@ -607,30 +632,32 @@ public class main {
 			while(!reconnu && !blocked && !toShort ) {
 				ArrayList<Integer> arriv = new ArrayList<Integer>();
 				String car = String.valueOf(argMot.charAt(c));
-				for(Transition tr : transitions)
-				{
-					if(tr.getDepart()==currentState && tr.getMot().equals(car)) {
-						arriv.add(tr.getArrivee());				
-					}
-				}
-				if(arriv.isEmpty()) {
-					blocked =true;
-					blockedCar = car;
-				}
-				else {
-					for(int i=0; i<size; i++) {
-						if(states.get(i).equals(arriv)) {
-							currentState=i;
+				if(!car.equals("*")) {
+					for(Transition tr : transitions)
+					{
+						if(tr.getDepart()==currentState && tr.getMot().equals(car)) {
+							arriv.add(tr.getArrivee());				
 						}
 					}
-					if(exits.contains(currentState) && c==argMot.length()-1) {
-						reconnu = true;
-					
-					}else {
-						c++;
-						if(c>argMot.length()-1)
-							toShort =true;
+					if(arriv.isEmpty()) {
+						blocked =true;
+						blockedCar = car;
 					}
+					else {
+						for(int i=0; i<size; i++) {
+							if(states.get(i).equals(arriv)) {
+								currentState=i;
+							}
+						}
+					}	
+				}
+				if(exits.contains(currentState) && c==argMot.length()-1 && (mots.contains(car) || car.equals("*")))  {
+					reconnu = true;
+				
+				}else {
+					c++;
+					if(c>argMot.length()-1)
+						toShort =true;
 				}
 			}
 			if(blocked == true) {
@@ -662,18 +689,20 @@ public class main {
 				boolean currentStateChange = false;
 				ArrayList<Integer> arriv = new ArrayList<Integer>();
 				String car = String.valueOf(argMot.charAt(c));
-				for(Transition tr : transitions)
-				{
-					if(tr.getDepart()==currentState && tr.getMot().equals(car)) {
-						currentState = tr.getArrivee();
-						currentStateChange = true;
+				if(!car.equals("*")) {
+					for(Transition tr : transitions)
+					{
+						if(tr.getDepart()==currentState && tr.getMot().equals(car)) {
+							currentState = tr.getArrivee();
+							currentStateChange = true;
+						}
+					}
+					if(!currentStateChange) {
+						blocked =true;
+						blockedCar = car;
 					}
 				}
-				if(!currentStateChange) {
-					blocked =true;
-					blockedCar = car;
-				}
-				else if(exits.contains(currentState) &&  c==argMot.length()-1){
+				if(exits.contains(currentState) &&  c==argMot.length()-1 &&  (mots.contains(car) || car.equals("*")) ){
 						reconnu = true;
 				}
 				else {	
@@ -702,14 +731,67 @@ public class main {
         do {
         	System.out.println("Saisissez un mot à tester : (-1 pour arréter)");
         	mot = scanner.nextLine();
+        	if(mot.equals("-1"))
+        		break;
         	reconnaissanceMot(auto, mot);
         	
-        }while (!mot.equals("-1"));
+        }while (true);
 	}
 	
+	
+	
 	public static Automate standardiser(Automate auto) {
-		
-		return null;
+		if(!auto.isAutoDeter()) {
+			ArrayList<Integer> entries = auto.getEntries();
+			ArrayList<Integer> exits = auto.getExits();
+			ArrayList<Transition> transitions = auto.getTransitions();
+			ArrayList<Integer> states = auto.getStates();
+			int size = states.size();
+			ArrayList<String> mots = auto.getMots();
+			
+			int newEtatEntry = size+1;
+			for(Integer e : entries) {
+				for(String mot : mots) {
+					for(int tr=0; tr<transitions.size(); tr++) {
+						if(transitions.get(tr).getDepart() == e && transitions.get(tr).getMot().equals(mot)){
+							auto.addTransition(new Transition(newEtatEntry, transitions.get(tr).getArrivee(), mot));
+						}
+					}
+				}
+			}
+			
+			auto.getEntries().clear();
+			auto.addEntry(newEtatEntry);
+			
+			return auto;
+		}
+		else {
+			ArrayList<ArrayList<Integer>> states = auto.getEtatsDetermin();
+			ArrayList<Integer> entries = auto.getEntries();
+			ArrayList<Integer> exits = auto.getExits();
+			ArrayList<Transition> transitions = auto.getTransitions();
+			int size = states.size();
+			ArrayList<String> mots = auto.getMots();
+			
+			ArrayList<Integer> newEtatEntry = new ArrayList<Integer>();
+			newEtatEntry.add(size);
+			auto.addEtatDetermin(newEtatEntry);
+			
+			for(Integer e : entries) {
+				for(String mot : mots) {
+					for(int tr=0; tr<transitions.size(); tr++) {
+						if(transitions.get(tr).getDepart() == e && transitions.get(tr).getMot().equals(mot)){
+							auto.addTransition(new Transition(size, transitions.get(tr).getArrivee(), mot));
+						}
+					}
+				}
+			}
+			
+			auto.getEntries().clear();
+			auto.addEntry(size);
+			return auto;
+		}
+			
 	}
 
 	public static Automate complementaire(Automate auto) {
@@ -752,31 +834,57 @@ public class main {
 	public static void main(String[] args) {
 			try {
 				Automate auto = lireFichier();
-				/*System.out.println(auto);
-				System.out.println(auto.nbStates());
-				System.out.println(auto.nbWords());
-				System.out.println(auto.getStates());
-				System.out.println(auto.getMots());
-				System.out.println("entries : " + auto.getEntries());
-				System.out.println("exits : " + auto.getExits());*/
-				
 				auto.reportAsync();
-				if(auto.asynchrone())
+				if(auto.asynchrone()) {
 					System.out.println("Automate asynchrone\n");
-				else
+					afficher(auto);		
+					System.out.println("Passage en automate synchrone :");
+					afficher(synchronisation(auto));
+				}
+				else {
 					System.out.println("Automate synchrone\n");
-
-				afficher(auto);		
-				System.out.println("Passage en automate synchrone :");
-				afficher(synchronisation(auto));
+					afficher(auto);	
+				}
 				
-				System.out.println("Automate déterminisé complet AFDC :");
-				Automate AFD = new Automate(determiniser(auto));
-				Automate AFDC = new Automate(completer(AFD));
-				afficher(AFDC);
+				Automate AFD;
+				Automate AFDC;
+				
+				if(isDetermined(auto)) {
+					System.out.println("L'automate est déja déterminé (AFD) :");
+					System.out.println("Automate déterminisé complet AFDC :");
+					AFD = new Automate(auto);
+					AFDC = new Automate(completer(AFD));
+					afficher(AFDC);
+				}
+				else {
+					System.out.println("L'automate n'est pas déterminé (AFD) :");
+					System.out.println("Automate déterminisé complet AFDC :");
+					AFD = new Automate(determiniser(auto));
+					AFDC = new Automate(completer(AFD));
+					afficher(AFDC);
+				}
+				
 				
 				System.out.println("Reconnaissance de mot sur l'AFDC :");
 				lancementReconnaissanceMot(AFDC);
+				
+				Scanner scan = new Scanner(System.in);
+				String rep="";
+				do {
+					System.out.println("Voulez vous tentez la minimisation ? y/n ");
+					rep = scan.next();
+				}
+				while(!rep.equals("y") && !rep.equals("n"));
+				
+				if(rep.equals("y")) {
+					System.out.println("Minimisation de l'AFDC :");
+					Automate AFDCM = new Automate(minimiser(AFDC));
+					System.out.println("Automate déterminisé complet minimisé AFDCM :");
+					afficher(AFDCM);
+					System.out.println("Reconnaissance de mot sur l'AFDCM :");
+					lancementReconnaissanceMot(AFDCM);
+				}
+				
 				
 				System.out.println("Automate complémentaire de l'AFDC :");
 				Automate AFDCcomp = new Automate(complementaire(AFDC));
@@ -785,12 +893,9 @@ public class main {
 				System.out.println("Reconnaissance de mot sur l'AFDC complémentaire :");
 				lancementReconnaissanceMot(AFDCcomp);
 				
-				System.out.println("Minimisation de l'AFDC :");
-				Automate AFDCM = new Automate(minimiser(AFDC));
-				System.out.println("Automate déterminisé complet minimisé AFDCM :");
-				afficher(AFDCM);
-				System.out.println("Reconnaissance de mot sur l'AFDCM :");
-				lancementReconnaissanceMot(AFDCM);
+				System.out.println("Automate complémentaire de l'AFDC stanrdadisé :");
+				Automate AFDCcompStd = new Automate(standardiser(AFDCcomp));
+				afficher(AFDCcompStd);
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

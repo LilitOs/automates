@@ -28,6 +28,9 @@ public class Automate {
 		this.entries = auto.getEntries();	
 		this.exits = auto.getExits();	
 		this.transitions = auto.getTransitions();	
+		this.AutoDeter = auto.isAutoDeter();
+		this.etatPoubelle = auto.isEtatPoubelle();
+		this.etatsDetermin = auto.getEtatsDetermin();
 	}
 	
 	public void resetAutomate() {
