@@ -24,6 +24,20 @@ public class Automate {
 		etatPoubelle = false;
 	}
 	
+	public Automate(Automate auto) {
+		this.entries = auto.getEntries();	
+		this.exits = auto.getExits();	
+		this.transitions = auto.getTransitions();	
+	}
+	
+	public void resetAutomate() {
+		entries.clear();
+		exits.clear();
+		transitions.clear();
+		AutoDeter = false;
+		etatPoubelle = false;
+	}
+	
 	public void addEntry(int entry) {
 		entries.add(entry);
 	}
