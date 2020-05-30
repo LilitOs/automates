@@ -286,13 +286,6 @@ public class main {
 		}
 		states.remove(state0);
 		
-		//test
-		for(ArrayList<Integer> state : states) {
-			for(Integer e : state) {
-				System.out.print(e);
-			}
-			System.out.println();
-		}
 		
 		// le reste
 		int i = 0;
@@ -695,6 +688,7 @@ public class main {
 						if(tr.getDepart()==currentState && tr.getMot().equals(car)) {
 							currentState = tr.getArrivee();
 							currentStateChange = true;
+							break;
 						}
 					}
 					if(!currentStateChange) {
@@ -771,7 +765,7 @@ public class main {
 			int size = states.size();
 			ArrayList<String> mots = auto.getMots();
 			
-			int newEtatEntry = size+1;
+			int newEtatEntry = size;
 			for(Integer e : entries) {
 				for(String mot : mots) {
 					for(int tr=0; tr<transitions.size(); tr++) {
