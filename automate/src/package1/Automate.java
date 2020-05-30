@@ -120,10 +120,20 @@ public class Automate {
 			if(!states.contains(transi.getDepart())) {
 				states.add(transi.getDepart());
 			}
-			else if(!states.contains(transi.getArrivee())){
+			if(!states.contains(transi.getArrivee())){
 				states.add(transi.getArrivee());
 			}
 		}
+		
+		for(Integer e : entries) {
+			if(!states.contains(e)) 
+				states.add(e);
+		}
+		for(Integer e : exits) {
+			if(!states.contains(e)) 
+				states.add(e);
+		}
+			
 		Collections.sort(states);
 		return states;
 	}
@@ -135,20 +145,9 @@ public class Automate {
 	
 	public int nbStates() {
 		int count =0;
-		ArrayList<Integer> states = new ArrayList<Integer>();
+		ArrayList<Integer> states = this.getStates();
+		return states.size();
 		
-		for(Transition transi : transitions) {
-			if(!states.contains(transi.getDepart())) {
-				count++;
-				states.add(transi.getDepart());
-			}
-			else if(!states.contains(transi.getArrivee())){
-				count++;
-				states.add(transi.getArrivee());
-			}
-		}
-	
-		return count;
 	}
 	
 	public int nbWords() {
