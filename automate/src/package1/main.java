@@ -665,9 +665,9 @@ public class main {
 				System.out.println("Caractère : [" + blockedCar +"] non reconnu.");
 			}
 			if(reconnu == true) 
-				System.out.println("Bravo !");
+				System.out.println("Bravo, le mot est reconnu.");
 			if(toShort == true) 
-				System.out.println("Le mot n'a pas atteint la sortie (mot trop court, ou boucle sur un seul état jusqu'a la fin du mot");
+				System.out.println("Le mot n'est pas reconnu.");
 		}
 		else {
 			ArrayList<String> mots = auto.getMots();
@@ -716,10 +716,10 @@ public class main {
 				System.out.println("Caractère : [" + blockedCar +"] non reconnu.");
 			}
 			if(reconnu == true) 
-				System.out.println("Bravo !");
+				System.out.println("Bravo, le mot est reconnu.");
 			
 			if(toShort == true) 
-				System.out.println("Le mot est trop court, il n'est donc pas reconnue");
+				System.out.println("Le mot n'est pas reconnu.");
 			
 		}
 		
