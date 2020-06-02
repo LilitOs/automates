@@ -895,6 +895,7 @@ public class main {
 				if(rep.equals("y")) {
 					System.out.println("Minimisation de l'AFDC :");
 					Automate temp = new Automate(determiniser(auto));
+					temp = completer(temp);
 					Automate AFDCM = new Automate(minimiser(temp));
 					System.out.println("Automate déterminisé complet minimisé AFDCM :");
 					afficher(AFDCM);
